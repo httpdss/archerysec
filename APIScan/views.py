@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-#                   _
-#    /\            | |
-#   /  \   _ __ ___| |__   ___ _ __ _   _
-#  / /\ \ | '__/ __| '_ \ / _ \ '__| | | |
-# / ____ \| | | (__| | | |  __/ |  | |_| |
-#/_/    \_\_|  \___|_| |_|\___|_|   \__, |
-#                                    __/ |
-#                                   |___/
+#                    _
+#     /\            | |
+#    /  \   _ __ ___| |__   ___ _ __ _   _
+#   / /\ \ | '__/ __| '_ \ / _ \ '__| | | |
+#  / ____ \| | | (__| | | |  __/ |  | |_| |
+# /_/    \_\_|  \___|_| |_|\___|_|   \__, |
+#                                     __/ |
+#                                    |___/
 # Copyright (C) 2017-2018 ArcherySec
 # This file is part of ArcherySec Project.
 
@@ -26,11 +26,8 @@ import os
 import json
 from zapv2 import ZAPv2
 import time
-# from scanners import zapscanner
-from django.http import HttpResponseRedirect
-import uuid
+from scanners import zapscanner
 from django.core import signing
-from projects.models import project_db
 import datetime
 
 api_key_path = os.getcwd() + '/' + 'apidata.json'
@@ -230,9 +227,9 @@ def authenticate(request):
             scan_url = request.POST.get("scan_url")
             req_header = ast.literal_eval(request.POST.get("req_header"))
             req_body = request.POST.get("req_body")
-            method = request.POST.get("method")
-            project_id = request.POST.get("project_id")
-            scan_id = request.POST.get("scan_id")
+            # method = request.POST.get("method")
+            # project_id = request.POST.get("project_id")
+            # scan_id = request.POST.get("scan_id")
             auth_token_key = request.POST.get("auth_token_key")
             extra_val_in_auth = request.POST.get("extra_auth_value")
 
@@ -255,7 +252,7 @@ def authenticate(request):
                         data = json.load(f)
                         lod_apikey = data['zap_api_key']
                         apikey = signing.loads(lod_apikey)
-                        zapath = data['zap_path']
+                        # zapath = data['zap_path']
                         zap_port = data['zap_port']
                 except Exception as e:
                     print e
@@ -316,18 +313,18 @@ def url_api_scan(request):
         print auth_val
         if auth_val == 'No':
             target_url = request.POST.get("scan_url")
-            req_header = ast.literal_eval(request.POST.get("req_header"))
-            req_body = request.POST.get("req_body")
+            # req_header = ast.literal_eval(request.POST.get("req_header"))
+            # req_body = request.POST.get("req_body")
             method = request.POST.get("method")
             project_id = request.POST.get("project_id")
-            scan_id = request.POST.get("scan_id")
-            auth_token_key = request.POST.get("auth_token_key")
+            # scan_id = request.POST.get("scan_id")
+            # auth_token_key = request.POST.get("auth_token_key")
             try:
                 with open(api_key_path, 'r+') as f:
                     data = json.load(f)
                     lod_apikey = data['zap_api_key']
                     apikey = signing.loads(lod_apikey)
-                    zapath = data['zap_path']
+                    # zapath = data['zap_path']
                     zap_port = data['zap_port']
             except Exception as e:
                 print e
@@ -349,13 +346,11 @@ def url_api_scan(request):
                 print e
                 return HttpResponseRedirect("/webscanners/scans_list/")
 
-            """
-                *****End zap scanner****
-            """
+            # *****End zap scanner****
 
             time.sleep(10)
 
-            """ Excluding URL from scanner """
+            # Excluding URL from scanner
 
             scanid = zap.spider.scan(target_url)
 
@@ -375,8 +370,9 @@ def url_api_scan(request):
 
             spider_res_out = zap.spider.results(scanid)
             data_out = ("\n".join(map(str, spider_res_out)))
-            print data_out
+            print(data_out)
             total_spider = len(spider_res_out)
+            print("total_spider: {}".format(total_spider))
 
             print 'Spider Completed------'
             print 'Target :', target_url

@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'easy_pdf',
     'dashboard',
     'background_task',
-    'sitetree'
+    'sitetree',
+    "pinax.notifications",
 ]
 
 
