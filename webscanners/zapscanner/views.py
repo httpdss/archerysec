@@ -33,7 +33,12 @@ from background_task import background
 from datetime import datetime
 from background_task.models import Task
 from jiraticketing.models import jirasetting
-
+from webscanners.resources import ZapResource, \
+    BurpResource, \
+    ArachniResource, \
+    NetsparkerResource, \
+    AcunetixResource, \
+    WebinspectResource
 
 scans_status = None
 
@@ -316,11 +321,13 @@ def zap_scan_list(request):
     """
     all_scans = zap_scans_db.objects.filter(rescan='No')
     rescan_all_scans = zap_scans_db.objects.filter(rescan='Yes')
+    zap_scan_result = zap_scan_results_db.objects.all()
 
     return render(request,
                   'zapscanner/zap_scan_list.html',
                   {'all_scans': all_scans,
                    'rescan_all_scans': rescan_all_scans,
+                   'zap_scan_result': zap_scan_result
                    })
 
 
@@ -520,13 +527,13 @@ def del_zap_scan(request):
             print "split_length", split_length
             for i in range(0, split_length):
                 target = target_split.__getitem__(i)
+                item_results = zap_scan_results_db.objects.filter(scan_id=target,
+                                                                  )
+                item_results.delete()
 
                 item = zap_scans_db.objects.filter(scan_scanid=target,
                                                    )
                 item.delete()
-                item_results = zap_scan_results_db.objects.filter(scan_id=target,
-                                                                  )
-                item_results.delete()
                 messages.add_message(request, messages.SUCCESS, 'Deleted Scan')
             return HttpResponseRedirect('/zapscanner/zap_scan_list/')
     except Exception as e:
@@ -833,7 +840,9 @@ def add_zap_vuln(request):
                                             reference=ref,
                                             solution=solution,
                                             requestHeader=req_header,
-                                            responseHeader=res_header)
+                                            responseHeader=res_header,
+                                            vuln_status='Open'
+                                            )
             save_vuln.save()
             messages.success(request, "Vulnerability Added")
             zap_all_vul = zap_scan_results_db.objects.filter(
@@ -850,7 +859,7 @@ def add_zap_vuln(request):
                                             high_vul=total_high,
                                             medium_vul=total_medium,
                                             low_vul=total_low)
-            return HttpResponseRedirect("/zapscanner/web_vuln_list/?scan_id=%s" % scan_id)
+            return HttpResponseRedirect("/zapscanner/zap_list_vuln/?scan_id=%s" % scan_id)
 
         elif scanners == 'burp':
             save_burp_vuln = burp_scan_result_db(scan_id=scan_id,
@@ -919,3 +928,30 @@ def zap_scan_pdf_gen(request):
                                                'vuln_scan': vuln_scan,
                                                'scan_url': scan_url,
                                                'zap_all_vul': zap_all_vul})
+
+
+def export(request):
+    """
+    :param request:
+    :return:
+    """
+
+    if request.method == 'POST':
+        scan_id = request.POST.get("scan_id")
+        report_type = request.POST.get("type")
+
+        zap_resource = ZapResource()
+        queryset = zap_scan_results_db.objects.filter(scan_id=scan_id)
+        dataset = zap_resource.export(queryset)
+        if report_type == 'csv':
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="%s.csv"' % scan_id
+            return response
+        if report_type == 'json':
+            response = HttpResponse(dataset.json, content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename="%s.json"' % scan_id
+            return response
+        if report_type == 'yaml':
+            response = HttpResponse(dataset.yaml, content_type='application/x-yaml')
+            response['Content-Disposition'] = 'attachment; filename="%s.yaml"' % scan_id
+            return response

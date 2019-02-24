@@ -14,15 +14,17 @@ from webscanners.models import zap_scans_db, zap_scan_results_db, burp_scan_db, 
     netsparker_scan_db, webinspect_scan_db, acunetix_scan_db
 from networkscanners.models import scan_save_db, ov_scan_result_db
 from projects.models import project_db
-from webscanners.serializers import WebScanSerializer,\
-    WebScanResultSerializer,\
+from webscanners.serializers import WebScanSerializer, \
+    WebScanResultSerializer, \
     UploadScanSerializer, \
-    WebScanStatusSerializer,\
-    ArachniScanStatusSerializer,\
-    BurpScanStatusSerializer,\
+    WebScanStatusSerializer, \
+    ArachniScanStatusSerializer, \
+    BurpScanStatusSerializer, \
     NetsparkerScanStatusSerializer, \
     AcunetixStatusSerializer, \
-    WebinspectScanStatusSerializer
+    WebinspectScanStatusSerializer, \
+    DependencycheckStatusSerializer, \
+    findbugsStatusSerializer
 
 from rest_framework import status
 from webscanners import web_views
@@ -53,6 +55,8 @@ from webscanners.arachniscanner.views import launch_arachni_scan
 from scanners.scanner_parser.staticscanner_parser import dependencycheck_report_parser, findbugs_report_parser
 from lxml import etree
 from staticscanners.models import dependencycheck_scan_db, findbugs_scan_db
+from tools.models import nikto_result_db
+from scanners.scanner_parser.tools.nikto_htm_parser import nikto_html_parser
 
 
 class WebScan(generics.ListCreateAPIView):
@@ -193,6 +197,9 @@ class Project(generics.CreateAPIView):
            Current user's identity endpoint.
 
         """
+        _project_name = None
+        _project_id = None
+
         serializer = ProjectDataSerializers(data=request.data)
         if serializer.is_valid():
             project_id = uuid.uuid4()
@@ -201,14 +208,25 @@ class Project(generics.CreateAPIView):
             project_end = request.data.get("project_end", )
             project_owner = request.data.get("project_owner", )
             project_disc = request.data.get("project_disc", )
-            save_project = project_db(project_name=project_name, project_id=project_id,
-                                      project_start=project_start, project_end=project_end,
-                                      project_owner=project_owner, project_disc=project_disc, )
-            save_project.save()
 
-            if not project_name:
-                return Response({"error": "No name passed"})
-            return Response({"message": "Project Created", "Project ID": project_id})
+            all_project = project_db.objects.filter(project_name=project_name)
+
+            for project in all_project:
+                _project_name = project.project_name
+                _project_id = project.project_id
+
+            if _project_name == project_name:
+                return Response({"message": "Project already existed", "project_id": _project_id})
+
+            else:
+                save_project = project_db(project_name=project_name, project_id=project_id,
+                                          project_start=project_start, project_end=project_end,
+                                          project_owner=project_owner, project_disc=project_disc, )
+                save_project.save()
+
+                if not project_name:
+                    return Response({"error": "No name passed"})
+                return Response({"message": "Project Created", "project_id": project_id})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -247,6 +265,7 @@ class ZapScanStatus(generics.ListCreateAPIView):
             serialized_scans = WebScanStatusSerializer(all_scans, many=True)
             return Response(serialized_scans.data)
 
+
 class ArachniScanStatus(generics.ListCreateAPIView):
     queryset = arachni_scan_db.objects.all()
     serializer_class = ArachniScanStatusSerializer
@@ -261,6 +280,40 @@ class ArachniScanStatus(generics.ListCreateAPIView):
             arachni_scan = arachni_scan_db.objects.filter(scan_id=scan_id)
             all_scans = chain(arachni_scan)
             serialized_scans = ArachniScanStatusSerializer(all_scans, many=True)
+            return Response(serialized_scans.data)
+
+
+class DependencycheckScanStatus(generics.ListCreateAPIView):
+    queryset = dependencycheck_scan_db.objects.all()
+    serializer_class = DependencycheckStatusSerializer
+
+    def post(self, request, format=None, **kwargs):
+        """
+            Post request to get all vulnerability Data.
+        """
+        serializer = DependencycheckStatusSerializer(data=request.data)
+        if serializer.is_valid():
+            scan_id = request.data.get('scan_id', )
+            dependencycheck_scan = dependencycheck_scan_db.objects.filter(scan_id=scan_id)
+            all_scans = chain(dependencycheck_scan)
+            serialized_scans = DependencycheckStatusSerializer(all_scans, many=True)
+            return Response(serialized_scans.data)
+
+
+class FindbugsScanStatus(generics.ListCreateAPIView):
+    queryset = findbugs_scan_db.objects.all()
+    serializer_class = findbugsStatusSerializer
+
+    def post(self, request, format=None, **kwargs):
+        """
+            Post request to get all vulnerability Data.
+        """
+        serializer = findbugsStatusSerializer(data=request.data)
+        if serializer.is_valid():
+            scan_id = request.data.get('scan_id', )
+            findbugs_scan = findbugs_scan_db.objects.filter(scan_id=scan_id)
+            all_scans = chain(findbugs_scan)
+            serialized_scans = findbugsStatusSerializer(all_scans, many=True)
             return Response(serialized_scans.data)
 
 
@@ -537,6 +590,22 @@ class UpladScanResult(APIView):
             findbugs_report_parser.xml_parser(project_id=project_id,
                                               scan_id=scan_id,
                                               root=root_xml)
+            return Response({"message": "Scan Data Uploaded",
+                             "project_id": project_id,
+                             "scan_id": scan_id,
+                             "scanner": scanner
+                             })
+        elif scanner == 'nikto':
+            date_time = datetime.datetime.now()
+            scan_dump = nikto_result_db(
+                date_time=date_time,
+                scan_url=scan_url,
+                scan_id=scan_id,
+                project_id=project_id,
+            )
+            scan_dump.save()
+
+            nikto_html_parser(xml_file, project_id, scan_id)
             return Response({"message": "Scan Data Uploaded",
                              "project_id": project_id,
                              "scan_id": scan_id,

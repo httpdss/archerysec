@@ -13,16 +13,16 @@ class bandit_scan_db(models.Model):
     project_name = models.TextField(blank=True, null=True)
     source_line = models.TextField(blank=True, null=True)
     total_vuln = models.IntegerField(blank=True, null=True)
-    SEVERITY_HIGH = models.TextField(blank=True, null=True)
-    CONFIDENCE_HIGH = models.TextField(blank=True, null=True)
-    CONFIDENCE_LOW = models.TextField(blank=True, null=True)
-    SEVERITY_MEDIUM = models.TextField(blank=True, null=True)
+    SEVERITY_HIGH = models.IntegerField(blank=True, null=True)
+    CONFIDENCE_HIGH = models.IntegerField(blank=True, null=True)
+    CONFIDENCE_LOW = models.IntegerField(blank=True, null=True)
+    SEVERITY_MEDIUM = models.IntegerField(blank=True, null=True)
     loc = models.IntegerField(blank=True, null=True)
     nosec = models.IntegerField(blank=True, null=True)
     CONFIDENCE_UNDEFINED = models.TextField(blank=True, null=True)
     SEVERITY_UNDEFINED = models.TextField(blank=True, null=True)
     CONFIDENCE_MEDIUM = models.TextField(blank=True, null=True)
-    SEVERITY_LOW = models.TextField(blank=True, null=True)
+    SEVERITY_LOW = models.IntegerField(blank=True, null=True)
     scan_status = models.IntegerField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
     total_dup = models.IntegerField(blank=True, null=True)
@@ -51,6 +51,7 @@ class bandit_scan_results_db(models.Model):
     vuln_duplicate = models.TextField(null=True, blank=True)
     false_positive_hash = models.TextField(null=True, blank=True)
     vuln_status = models.TextField(null=True, blank=True)
+    scanner = models.TextField(default='Bandit', editable=False)
 
 
 class dependencycheck_scan_db(models.Model):
@@ -63,9 +64,9 @@ class dependencycheck_scan_db(models.Model):
     scan_status = models.IntegerField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
     total_dup = models.IntegerField(blank=True, null=True)
-    SEVERITY_HIGH = models.TextField(blank=True, null=True)
-    SEVERITY_MEDIUM = models.TextField(blank=True, null=True)
-    SEVERITY_LOW = models.TextField(blank=True, null=True)
+    SEVERITY_HIGH = models.IntegerField(blank=True, null=True)
+    SEVERITY_MEDIUM = models.IntegerField(blank=True, null=True)
+    SEVERITY_LOW = models.IntegerField(blank=True, null=True)
 
 
 class dependencycheck_scan_results_db(models.Model):
@@ -100,6 +101,7 @@ class dependencycheck_scan_results_db(models.Model):
     sha1 = models.TextField(blank=True, null=True)
     sha256 = models.TextField(blank=True, null=True)
     evidenceCollected = models.TextField(blank=True, null=True)
+    scanner = models.TextField(default='Dependency Check', editable=False)
 
 
 class retirejs_scan_db(models.Model):
@@ -110,9 +112,9 @@ class retirejs_scan_db(models.Model):
     project_name = models.TextField(blank=True, null=True)
     source_line = models.TextField(blank=True, null=True)
     total_vuln = models.IntegerField(blank=True, null=True)
-    SEVERITY_HIGH = models.TextField(blank=True, null=True)
-    SEVERITY_MEDIUM = models.TextField(blank=True, null=True)
-    SEVERITY_LOW = models.TextField(blank=True, null=True)
+    SEVERITY_HIGH = models.IntegerField(blank=True, null=True)
+    SEVERITY_MEDIUM = models.IntegerField(blank=True, null=True)
+    SEVERITY_LOW = models.IntegerField(blank=True, null=True)
     scan_status = models.IntegerField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
     total_dup = models.IntegerField(blank=True, null=True)
@@ -137,6 +139,7 @@ class retirejs_scan_results_db(models.Model):
     false_positive_hash = models.TextField(null=True, blank=True)
     vuln_status = models.TextField(null=True, blank=True)
     issue = models.TextField(null=True, blank=True)
+    scanner = models.TextField(default='RetireJs', editable=False)
 
 
 class findbugs_scan_db(models.Model):
@@ -149,9 +152,9 @@ class findbugs_scan_db(models.Model):
     scan_status = models.IntegerField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
     total_dup = models.IntegerField(blank=True, null=True)
-    SEVERITY_HIGH = models.TextField(blank=True, null=True)
-    SEVERITY_MEDIUM = models.TextField(blank=True, null=True)
-    SEVERITY_LOW = models.TextField(blank=True, null=True)
+    SEVERITY_HIGH = models.IntegerField(blank=True, null=True)
+    SEVERITY_MEDIUM = models.IntegerField(blank=True, null=True)
+    SEVERITY_LOW = models.IntegerField(blank=True, null=True)
 
 
 class findbugs_scan_results_db(models.Model):
@@ -166,7 +169,6 @@ class findbugs_scan_results_db(models.Model):
     vuln_duplicate = models.TextField(null=True, blank=True)
     false_positive_hash = models.TextField(null=True, blank=True)
     vuln_status = models.TextField(null=True, blank=True)
-
     name = models.TextField(blank=True)
     ShortMessage = models.TextField(blank=True)
     LongMessage = models.TextField(blank=True)
@@ -183,3 +185,4 @@ class findbugs_scan_results_db(models.Model):
     Details = models.TextField(blank=True)
     priority = models.TextField(blank=True)
     risk = models.TextField(blank=True)
+    scanner = models.TextField(default='Findbugs', editable=False)

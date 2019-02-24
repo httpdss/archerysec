@@ -8,18 +8,18 @@
     </div>
     <div class="container-fluid">
         <hr>
-        <div class="span3 offset6">
-            {% if messages %}
+        <!--<div class="span3 offset6">-->
+            <!--{% if messages %}-->
 
-            {% for message in messages %}
-            <div class="alert alert-success alert-block"><a class="close" data-dismiss="alert"
-                                                            href="#">×</a>
-                <p class="alert-heading">{{ message }}</p>
-            </div>
-            {% endfor %}
+            <!--{% for message in messages %}-->
+            <!--<div class="alert alert-success alert-block"><a class="close" data-dismiss="alert"-->
+                                                            <!--href="#">×</a>-->
+                <!--<p class="alert-heading">{{ message }}</p>-->
+            <!--</div>-->
+            <!--{% endfor %}-->
 
-            {% endif %}
-        </div>
+            <!--{% endif %}-->
+        <!--</div>-->
         <div class="row-fluid">
             <div class="span6 offset3">
                 <div class="widget-box">
@@ -56,6 +56,7 @@
                                         <option value="acunetix">Acunetix Scanner</option>
                                         <option value="dependencycheck">Dependency Check</option>
                                         <option value="findbugs">FindBug</option>
+                                        <option value="nikto">Nikto</option>
                                     </select>
                                 </div>
                             </div>
@@ -67,10 +68,13 @@
                                 </div>
                             </div>
                             <div class="control-group">
-                                <label class="control-label">XML File :</label>
+                                <label class="control-label">XML/HTML File :</label>
                                 <div class="controls">
                                     <input type="file" name="xmlfile">
                                 </div>
+                            </div>
+                            <div class="controls">
+                                <small><em>Note: Import HTML File for Nikto Scan</em></small>
                             </div>
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-success">Save</button>

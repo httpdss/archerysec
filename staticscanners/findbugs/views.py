@@ -13,6 +13,7 @@
 from django.shortcuts import render, render_to_response, HttpResponse, HttpResponseRedirect
 from staticscanners.models import findbugs_scan_results_db, findbugs_scan_db
 import hashlib
+from staticscanners.resources import FindbugResource
 
 
 def findbugs_list(request):
@@ -160,7 +161,7 @@ def findbugs_del_vuln(request):
     """
     if request.method == 'POST':
         vuln_id = request.POST.get("del_vuln", )
-        un_scanid = request.POST.get("scan_id", )
+        scan_id = request.POST.get("scan_id", )
         scan_item = str(vuln_id)
         value = scan_item.replace(" ", "")
         value_split = value.split(',')
@@ -170,18 +171,47 @@ def findbugs_del_vuln(request):
             vuln_id = value_split.__getitem__(i)
             delete_vuln = findbugs_scan_results_db.objects.filter(vuln_id=vuln_id)
             delete_vuln.delete()
-        all_findbugs_data = findbugs_scan_results_db.objects.filter(scan_id=un_scanid)
+        all_findbugs_data = findbugs_scan_results_db.objects.filter(scan_id=scan_id)
 
         total_vul = len(all_findbugs_data)
-        total_high = len(all_findbugs_data.filter(issue_severity="HIGH"))
-        total_medium = len(all_findbugs_data.filter(issue_severity="MEDIUM"))
-        total_low = len(all_findbugs_data.filter(issue_severity="LOW"))
+        total_high = len(all_findbugs_data.filter(priority="1"))
+        total_medium = len(all_findbugs_data.filter(priority="2"))
+        total_low = len(all_findbugs_data.filter(priority="3"))
+        total_duplicate = len(all_findbugs_data.filter(vuln_duplicate='Yes'))
+        print "total duplicats", total_duplicate
 
-        findbugs_scan_db.objects.filter(scan_id=un_scanid).update(
+        findbugs_scan_db.objects.filter(scan_id=scan_id).update(
             total_vuln=total_vul,
             SEVERITY_HIGH=total_high,
             SEVERITY_MEDIUM=total_medium,
-            SEVERITY_LOW=total_low
+            SEVERITY_LOW=total_low,
+            total_dup=total_duplicate
         )
 
-        return HttpResponseRedirect("/findbugsscanner/findbugsscan_list_vuln/?scan_id=%s" % un_scanid)
+        return HttpResponseRedirect("/findbugs/findbugs_all_vuln/?scan_id=%s" % scan_id)
+
+def export(request):
+    """
+    :param request:
+    :return:
+    """
+
+    if request.method == 'POST':
+        scan_id = request.POST.get("scan_id")
+        report_type = request.POST.get("type")
+
+        findbugs_resource = FindbugResource()
+        queryset = findbugs_scan_results_db.objects.filter(scan_id=scan_id)
+        dataset = findbugs_resource.export(queryset)
+        if report_type == 'csv':
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="%s.csv"' % scan_id
+            return response
+        if report_type == 'json':
+            response = HttpResponse(dataset.json, content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename="%s.json"' % scan_id
+            return response
+        if report_type == 'yaml':
+            response = HttpResponse(dataset.yaml, content_type='application/x-yaml')
+            response['Content-Disposition'] = 'attachment; filename="%s.yaml"' % scan_id
+            return response

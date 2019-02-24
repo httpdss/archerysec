@@ -13,6 +13,7 @@
 from django.shortcuts import render, render_to_response, HttpResponse, HttpResponseRedirect
 from staticscanners.models import dependencycheck_scan_results_db, dependencycheck_scan_db
 import hashlib
+from staticscanners.resources import DependencyResource
 
 
 def dependencycheck_list(request):
@@ -65,9 +66,9 @@ def dependencycheck_vuln_data(request):
         if false_positive == 'Yes':
             vuln_info = dependencycheck_scan_results_db.objects.filter(scan_id=scan_id, vuln_id=vuln_id)
             for vi in vuln_info:
-                name = vi.test_name
-                filename = vi.filename
-                Severity = vi.issue_severity
+                name = vi.name
+                filename = vi.fileName
+                Severity = vi.severity
                 dup_data = name + filename + Severity
                 false_positive_hash = hashlib.sha256(dup_data).hexdigest()
                 dependencycheck_scan_results_db.objects.filter(vuln_id=vuln_id,
@@ -77,12 +78,7 @@ def dependencycheck_vuln_data(request):
                                                                                        )
 
         return HttpResponseRedirect(
-            '/dependencycheckscanner/dependencycheckscan_vuln_data/?scan_id=%s&test_name=%s' % (scan_id, vuln_name))
-
-    # dependencycheck_vuln_data = dependencycheck_scan_results_db.objects.filter(
-    #     scan_id=scan_id,
-    #     name=test_name
-    # )
+            '/dependencycheck/dependencycheck_vuln_data/?scan_id=%s&test_name=%s' % (scan_id, vuln_name))
 
     dependencycheck_vuln_data = dependencycheck_scan_results_db.objects.filter(scan_id=scan_id,
                                                                                name=test_name,
@@ -160,7 +156,7 @@ def dependencycheck_del_vuln(request):
     """
     if request.method == 'POST':
         vuln_id = request.POST.get("del_vuln", )
-        un_scanid = request.POST.get("scan_id", )
+        scan_id = request.POST.get("scan_id", )
         scan_item = str(vuln_id)
         value = scan_item.replace(" ", "")
         value_split = value.split(',')
@@ -170,18 +166,50 @@ def dependencycheck_del_vuln(request):
             vuln_id = value_split.__getitem__(i)
             delete_vuln = dependencycheck_scan_results_db.objects.filter(vuln_id=vuln_id)
             delete_vuln.delete()
-        all_dependencycheck_data = dependencycheck_scan_results_db.objects.filter(scan_id=un_scanid)
 
-        total_vul = len(all_dependencycheck_data)
-        total_high = len(all_dependencycheck_data.filter(issue_severity="HIGH"))
-        total_medium = len(all_dependencycheck_data.filter(issue_severity="MEDIUM"))
-        total_low = len(all_dependencycheck_data.filter(issue_severity="LOW"))
+        all_dependency_data = dependencycheck_scan_results_db.objects.filter(scan_id=scan_id)
 
-        dependencycheck_scan_db.objects.filter(scan_id=un_scanid).update(
+        total_vul = len(all_dependency_data)
+        total_high = len(all_dependency_data.filter(severity="High"))
+        total_medium = len(all_dependency_data.filter(severity="Medium"))
+        total_low = len(all_dependency_data.filter(severity="Low"))
+        total_duplicate = len(all_dependency_data.filter(vuln_duplicate='Yes'))
+        print "total duplicats", total_duplicate
+
+        dependencycheck_scan_db.objects.filter(scan_id=scan_id).update(
             total_vuln=total_vul,
             SEVERITY_HIGH=total_high,
             SEVERITY_MEDIUM=total_medium,
-            SEVERITY_LOW=total_low
+            SEVERITY_LOW=total_low,
+            total_dup=total_duplicate
         )
 
-        return HttpResponseRedirect("/dependencycheckscanner/dependencycheckscan_list_vuln/?scan_id=%s" % un_scanid)
+        return HttpResponseRedirect("/dependencycheck/dependencycheck_all_vuln/?scan_id=%s" % scan_id)
+
+
+def export(request):
+    """
+    :param request:
+    :return:
+    """
+
+    if request.method == 'POST':
+        scan_id = request.POST.get("scan_id")
+        report_type = request.POST.get("type")
+
+        dependency_resource = DependencyResource()
+        queryset = dependencycheck_scan_results_db.objects.filter(scan_id=scan_id)
+        dataset = dependency_resource.export(queryset)
+        if report_type == 'csv':
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="%s.csv"' % scan_id
+            return response
+        if report_type == 'json':
+            response = HttpResponse(dataset.json, content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename="%s.json"' % scan_id
+            return response
+        if report_type == 'yaml':
+            response = HttpResponse(dataset.yaml, content_type='application/x-yaml')
+            response['Content-Disposition'] = 'attachment; filename="%s.yaml"' % scan_id
+            return response
+
