@@ -1,7 +1,9 @@
 
 $(document).ready(function(){
 
-
+	$('.nav a[href*="inbox"]').append(
+		'<span class="live_notify_badge"></span>'
+	);
 
 	// === Sidebar navigation === //
 

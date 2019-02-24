@@ -13,15 +13,21 @@ from PyBurprestapi import burpscanner
 import os
 import json
 import time
-import defusedxml.ElementTree as ET
+import hashlib
 import base64
-from webscanners.models import burp_scan_db, burp_scan_result_db
 import uuid
+import defusedxml.ElementTree as ET
+
 from django.shortcuts import HttpResponse
+from django.contrib.auth.models import User
 # from django.core.mail import send_mail
+
+from pinax.notifications.models import send
+
+from webscanners.models import burp_scan_db, burp_scan_result_db
 from webscanners import email_notification
 from archerysettings import load_settings
-import hashlib
+
 
 # Setting file importing
 setting_file = os.getcwd() + '/' + 'apidata.json'
@@ -305,7 +311,7 @@ class burp_scans(object):
         total_high = len(burp_all_vul.filter(severity="High"))
         total_medium = len(burp_all_vul.filter(severity="Medium"))
         total_low = len(burp_all_vul.filter(severity="Low"))
-        total_info = len(burp_all_vul.filter(severity="Information"))
+        # total_info = len(burp_all_vul.filter(severity="Information"))
         total_duplicate = len(burp_all_vul.filter(vuln_duplicate='Yes'))
         burp_scan_db.objects.filter(scan_id=self.scan_id).update(
             total_vul=total_vul,
@@ -314,8 +320,14 @@ class burp_scans(object):
             low_vul=total_low,
             total_dup=total_duplicate
         )
+        # TODO: depricate this in favor of using the notification module
         try:
             email_notification.email_notify()
         except Exception as e:
             print e
+
+        # TODO: define who needs to really get this notification
+        users = User.objects.all()
+        send(users, "scan_completed")
+
         HttpResponse(status=201)

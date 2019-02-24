@@ -60,8 +60,13 @@ urlpatterns = [
     url(r'^manual_scan/', include('manual_scan.urls')),
 
     # Pinax notifications App
-    url(r"^notifications/", include("pinax.notifications.urls",
-                                    namespace="pinax_notifications")),
+    url(r"^notifications/", include(
+        "pinax.notifications.urls",
+        namespace="pinax_notifications")),
+
+    url(r"^inbox/notifications/", include(
+        "notifications.urls",
+        namespace='notifications')),
 ]
 
 urlpatterns = urlpatterns + \

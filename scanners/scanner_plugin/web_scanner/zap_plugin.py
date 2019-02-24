@@ -8,16 +8,19 @@
 #                                   |___/
 # Copyright (C) 2017-2018 ArcherySec
 # This file is part of ArcherySec Project.
-
-from zapv2 import ZAPv2
-from django.db.models import Q
 import os
 import time
 import uuid
 import json
 import ast
-from archerysettings.models import zap_settings_db, burp_setting_db, openvas_setting_db
 import hashlib
+from zapv2 import ZAPv2
+from django.db.models import Q
+
+from django.contrib.auth.models import User
+from pinax.notifications.models import send
+
+from archerysettings.models import zap_settings_db, burp_setting_db, openvas_setting_db
 
 # ZAP Database import
 
@@ -516,4 +519,9 @@ class ZAPScanner:
                 res_id=res_id
             )
         status = "Scan Completed"
+
+        # TODO: define who needs to really get this notification
+        users = User.objects.all()
+        send(users, "scan_completed")
+
         return status

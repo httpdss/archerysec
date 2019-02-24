@@ -39,6 +39,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "SET ME")
 
 ALLOWED_HOSTS = ['*']
 
+SITE_ID = 1
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
     'manual_scan',
     'django.contrib.admin',
     'stronghold',
+    'django.contrib.sites',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -68,6 +71,7 @@ INSTALLED_APPS = [
     'background_task',
     'sitetree',
     "pinax.notifications",
+    "notifications",
 ]
 
 
@@ -193,6 +197,11 @@ REFRESH_TIMER = 5
 
 SETTINGS_EXPORT = [
     'REFRESH_TIMER',
+]
+
+PINAX_NOTIFICATIONS_BACKENDS = [
+    ("desktop", "archerysecurity.notifications.backends.desktop.DesktopBackend"),
+    ("email", "pinax.notifications.backends.email.EmailBackend"),
 ]
 
 

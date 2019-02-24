@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 import threading
 import time
 import uuid
+import hashlib
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseRedirect
@@ -32,8 +33,7 @@ from background_task import background
 from datetime import datetime
 from background_task.models import Task
 from jiraticketing.models import jirasetting
-from archerysettings.models import zap_settings_db
-import hashlib
+
 
 scans_status = None
 
@@ -173,7 +173,7 @@ def zap_scan_task_launch(request):
     :return:
     """
     if request.method == 'GET':
-        task_time = request.GET['time']
+        # task_time = request.GET['time']
 
         t = Task.objects.all()
         # t.delete()
@@ -512,7 +512,7 @@ def del_zap_scan(request):
     try:
         if request.method == 'POST':
             item_id = request.POST.get("scan_scanid")
-            scan_url = request.POST.get("scan_url")
+            # scan_url = request.POST.get("scan_url")
             scan_item = str(item_id)
             ip = scan_item.replace(" ", "")
             target_split = ip.split(',')
@@ -530,7 +530,8 @@ def del_zap_scan(request):
                 messages.add_message(request, messages.SUCCESS, 'Deleted Scan')
             return HttpResponseRedirect('/zapscanner/zap_scan_list/')
     except Exception as e:
-        print "Error Got !!!"
+        print("Error Got !!!")
+        print(e)
 
 
 def slem(driver, url):
@@ -545,7 +546,8 @@ def slem(driver, url):
     try:
         driver.get(url, )
     except Exception as e:
-        print "Error Got !!!"
+        print("Error Got !!!")
+        print(e)
     return
 
 

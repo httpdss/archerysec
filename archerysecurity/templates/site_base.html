@@ -1,4 +1,4 @@
-{% load static i18n %}<!DOCTYPE html>
+{% load static i18n notifications_tags %}<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -24,7 +24,7 @@
         {% block extra_head %}{% endblock extra_head %}
     </head>
 
-    <body class="{% block body_class %}{% endblock %}">
+    <body id="{% block body_id %}{% endblock %}" class="{% block body_class %}{% endblock %}">
     {% block body %}
         <div id="header">
             <img src="/static/archery_logo.svg" style="max-width:200px; margin-top: 20px;">
@@ -63,6 +63,9 @@
         <script src="{% static "js/jquery.flot.min.js" %}"></script>
         <script src="{% static "js/jquery.flot.resize.min.js" %}"></script>
         <script src="{% static "js/jquery.peity.min.js" %}"></script>
+
+        <script src="{% static 'notifications/notify.js' %}" type="text/javascript"></script>
+        {% register_notify_callbacks fetch="10" refresh_period="60" callbacks="fill_notification_list,fill_notification_badge" %}
 
         <script src="{% static "archerysecurity/js/base.js" %}"></script>
         <script src="{% static "archerysecurity/js/tables.js" %}"></script>

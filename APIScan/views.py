@@ -12,23 +12,27 @@
 
 from __future__ import unicode_literals
 
-from django.shortcuts import render, HttpResponseRedirect
+import os
+import json
+import time
+import datetime
 import uuid
-from projects.models import project_db
-from APIScan.models import APIScan_db, api_token_db, APIScan_url_db
 import requests
 import ast
 
+from django.core import signing
+from django.shortcuts import render, HttpResponseRedirect
+from django.db.models import Q
+from django.contrib.auth.models import User
+
+from pinax.notifications.models import send
+from projects.models import project_db
+from APIScan.models import APIScan_db, api_token_db, APIScan_url_db
 from webscanners.models import zap_scan_results_db, zap_scans_db, zap_spider_db, zap_spider_results, cookie_db, \
     excluded_db
-from django.db.models import Q
-import os
-import json
 from zapv2 import ZAPv2
-import time
 from scanners import zapscanner
-from django.core import signing
-import datetime
+
 
 api_key_path = os.getcwd() + '/' + 'apidata.json'
 
@@ -330,8 +334,10 @@ def url_api_scan(request):
                 print e
 
             zap = ZAPv2(apikey=apikey,
-                        proxies={'http': 'http://127.0.0.1' + ':' + zap_port,
-                                 'https': 'http://127.0.0.1' + ':' + zap_port})
+                        proxies={
+                            'http': 'http://127.0.0.1' + ':' + zap_port,
+                            'https': 'http://127.0.0.1' + ':' + zap_port
+                        })
 
             print target_url
 
@@ -464,6 +470,10 @@ def url_api_scan(request):
                                                                       medium_vul=total_medium, low_vul=total_low)
 
             spider_alert = "Scan Completed"
+
+            # TODO: define who needs to really get this notification
+            users = User.objects.all()
+            send(users, "scan_completed")
 
             time.sleep(5)
 

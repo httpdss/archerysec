@@ -1,0 +1,43 @@
+{% extends "pinax/notifications/base.html" %}
+
+{% load i18n %}
+
+{% block body_id %}notification-settings{% endblock %}
+
+{% block title %}{% trans "Notification Settings" %}{% endblock title %}
+{% block header_title %}{% trans "Notification Settings" %}{% endblock header_title %}
+
+{% block content %}
+    <form method="POST" class="form" action="">
+        {% csrf_token %}
+        <table class="table table-striped notice_settings">
+            <tr>
+                <th>{% trans "Notification Type" %}</th>
+                {% for header in notice_settings.column_headers %}
+                    <th>
+                        {{ header.title }}
+                    </th>
+                {% endfor %}
+            </tr>
+            {% for row in notice_settings.rows %}
+                <tr class="notice-row">
+                    <td>
+                        <strong>{{ row.notice_type.display }}</strong><br/>
+                        <span class="notice_type_description">
+                            {{ row.notice_type.description }}
+                        </span>
+                    </td>
+                    {% for cell in row.cells %}
+                        <td>
+                            <input type="checkbox" name="{{ cell.0 }}" {% if cell.1 %}checked="yes"{% endif %} />
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success pull-right">{% trans "Change" %}</button>
+        </div>
+    </form>
+{% endblock %}

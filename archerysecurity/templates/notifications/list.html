@@ -1,0 +1,18 @@
+{% extends 'notifications/base.html' %}
+
+{% load i18n %}
+
+{% block body_id %}notifications-inbox{% endblock %}
+
+{% block title %}{% trans "Notifications" %}{% endblock title %}
+{% block header_title %}{% trans "Notifications" %}{% endblock header_title %}
+
+
+{% block content %}
+<a href="{% url 'pinax_notifications:notice_settings' %}" class="btn btn-success pull-right">Notification Settings</a>
+<ul class="notifications">
+  {% for notice in notifications %}
+    {% include 'notifications/notice.html' %}
+  {% endfor %}
+</ul>
+{% endblock content %}
