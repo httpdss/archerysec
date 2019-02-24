@@ -1,3 +1,5 @@
 -r requirements.txt
 flake8
+mkdocs
+mkdocs-material
 pre-commit
