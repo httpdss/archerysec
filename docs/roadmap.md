@@ -1,4 +1,4 @@
-#Road Map
+# Road Map
 
 The tool is in a development phase and below features will be implemented.
 
@@ -9,5 +9,3 @@ The tool is in a development phase and below features will be implemented.
 * Cloud Security scanning.
 * Dashboards
 * Easy to installing.
-
-

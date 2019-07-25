@@ -1,4 +1,4 @@
-# Complete guide <small>for Kali</small>
+# Complete guide for Kali
 
 Archery tool fully supported in Kali linux and you can easily install & Configure. Follow the below video guide.
 
